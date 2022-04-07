@@ -1,0 +1,57 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8"/>
+    <title>Ingredient</title>
+
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/css/bootstrap.min.css" rel="stylesheet" integrity="sha384-1BmE4kWBq78iYhFldvKuhfTAU6auU8tT94WrHftjDbrCEXSU1oBoqyl2QvZ6jIW3" crossorigin="anonymous" th:href="@{/webjars/bootstrap/5.1.3/css/bootstrap.min.css}">
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/js/bootstrap.bundle.min.js" integrity="sha384-ka7Sk0Gln4gmtz2MlQnikT1wXgYsOg+OMhuP+IlRH9sENBO0LRn5q+8nbTov4+1p" crossorigin="anonymous" th:href="@{/webjars/bootstrap/5.1.3/js/bootstrap.bundle.min.js}"></script>
+</head>
+<body>
+<!--h1>Ingredients</h1-->
+
+<div class="container-fluid" style="margin-top: 20px">
+    <div class="row">
+        <div class="col-md-6 offset-md-3">
+            <div class="card">
+                <div class="card-header text-white bg-primary">
+                    <p class="card-title">Ingredient</p>
+                </div>
+                <div class="card-body">
+                    <div class="table-responsive" th:if="${ingredient ne null}">
+                        <table class="table table-hover">
+                            <thead>
+                            <tr>
+                                <th>Descriptions</th>
+                                <th/>
+                                <th/>
+                            </tr>
+                            </thead>
+                            <tr th:remove="all">
+                                <td>Ingredient 1</td>
+                                <td><a type="button" class="btn btn-primary">Update</a></td>
+                                <td><a type="button" class="btn btn-primary">Delete</a></td>
+                            </tr>
+                            <tr th:remove="all">
+                                <td>Ingredient 2</td>
+                                <td><a type="button" class="btn btn-primary">Update</a></td>
+                                <td><a type="button" class="btn btn-primary">Delete</a></td>
+                            </tr>
+                            <tr>
+                                <td th:text="'&nbsp' + ${ingredient.amount.toString()} + ' ' +
+                                             ${ingredient.uom.description} + ' ' +
+                                             ${ingredient.description}">Ingredients</td>
+                                <td><a class="btn btn-primary" href="#" th:href="@{'/recipe/' + ${ingredient.recipeId} + '/ingredients/'+ ${ingredient.id} +'/update/'}" th:text="Update">Update</a></td>
+                                <td><a class="btn btn-primary" href="#" th:href="@{'/recipe/' + ${ingredient.recipeId} + '/ingredients/'+ ${ingredient.id} +'/delete/'}" th:text="Delete">Delete</a></td>
+                            </tr>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+</div>
+
+</body>
+</html>
