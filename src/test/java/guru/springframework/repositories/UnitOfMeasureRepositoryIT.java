@@ -5,17 +5,11 @@ import guru.springframework.model.UnitOfMeasure;
 import guru.springframework.repositories.reactive.CategoryReactiveRepository;
 import guru.springframework.repositories.reactive.RecipeReactiveRepository;
 import guru.springframework.repositories.reactive.UnitOfMeasureReactiveRepository;
-import org.junit.jupiter.api.AfterEach;
-import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.boot.autoconfigure.AutoConfigureOrder;
 import org.springframework.boot.test.autoconfigure.data.mongo.DataMongoTest;
-import org.springframework.boot.test.autoconfigure.orm.jpa.DataJpaTest;
-import org.springframework.boot.test.context.SpringBootTest;
-import org.springframework.context.annotation.Import;
 import org.springframework.test.context.junit.jupiter.SpringExtension;
 
 import java.util.Optional;
@@ -53,10 +47,8 @@ class UnitOfMeasureRepositoryIT {
         unitOfMeasureRepository.deleteAll();
         categoryRepository.deleteAll();
 
-        BootStrapDataDefault recipeBootStrap = new BootStrapDataDefault(recipeRepository,categoryRepository,unitOfMeasureRepository,
-                                                                      recipeReactiveRepository,
-                                                                      categoryReactiveRepository,
-                                                                      unitOfMeasureReactiveRepository);
+        BootStrapDataDefault recipeBootStrap = new BootStrapDataDefault(recipeRepository,categoryRepository,unitOfMeasureRepository
+        );
 
         recipeBootStrap.run("");
     }

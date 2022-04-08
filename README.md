@@ -1,5 +1,6 @@
 [![CircleCI](https://circleci.com/gh/chanchishing/recipePrj-mongo-reactive/tree/master.svg?style=svg)](https://circleci.com/gh/chanchishing/recipePrj-mongo-reactive/tree/master)
 
+[![codecov](https://codecov.io/gh/chanchishing/recipePrj-mongo-reactive/branch/master/graph/badge.svg?token=JMB0JZLQV4)](https://codecov.io/gh/chanchishing/recipePrj-mongo-reactive)
 # recipePrj-Mongo-reactive
 This is the Recipe Project on MongoDB and Reactive driver of the course that I code along when taking the Udmey course "Spring Framework 5: Beginner to Guru"
 
