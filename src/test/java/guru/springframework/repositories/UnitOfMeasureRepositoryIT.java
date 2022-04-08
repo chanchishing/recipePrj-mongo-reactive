@@ -2,6 +2,9 @@ package guru.springframework.repositories;
 
 import guru.springframework.bootstrap.BootStrapDataDefault;
 import guru.springframework.model.UnitOfMeasure;
+import guru.springframework.repositories.reactive.CategoryReactiveRepository;
+import guru.springframework.repositories.reactive.RecipeReactiveRepository;
+import guru.springframework.repositories.reactive.UnitOfMeasureReactiveRepository;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.BeforeEach;
@@ -34,6 +37,15 @@ class UnitOfMeasureRepositoryIT {
     @Autowired
     RecipeRepository recipeRepository;
 
+    @Autowired
+    RecipeReactiveRepository recipeReactiveRepository;
+
+    @Autowired
+    CategoryReactiveRepository categoryReactiveRepository;
+
+    @Autowired
+    UnitOfMeasureReactiveRepository unitOfMeasureReactiveRepository;
+
     @BeforeEach
     public void setUp() throws Exception {
 
@@ -41,7 +53,10 @@ class UnitOfMeasureRepositoryIT {
         unitOfMeasureRepository.deleteAll();
         categoryRepository.deleteAll();
 
-        BootStrapDataDefault recipeBootStrap = new BootStrapDataDefault(recipeRepository,categoryRepository,unitOfMeasureRepository);
+        BootStrapDataDefault recipeBootStrap = new BootStrapDataDefault(recipeRepository,categoryRepository,unitOfMeasureRepository,
+                                                                      recipeReactiveRepository,
+                                                                      categoryReactiveRepository,
+                                                                      unitOfMeasureReactiveRepository);
 
         recipeBootStrap.run("");
     }

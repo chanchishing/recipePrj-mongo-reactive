@@ -5,6 +5,8 @@ import guru.springframework.model.*;
 import guru.springframework.repositories.CategoryRepository;
 import guru.springframework.repositories.RecipeRepository;
 import guru.springframework.repositories.UnitOfMeasureRepository;
+import guru.springframework.repositories.reactive.CategoryReactiveRepository;
+import guru.springframework.repositories.reactive.RecipeReactiveRepository;
 import guru.springframework.repositories.reactive.UnitOfMeasureReactiveRepository;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -30,9 +32,12 @@ public class BootStrapDataDefault implements CommandLineRunner {
     private final RecipeRepository recipeRepository;
     private final CategoryRepository categoryRepository;
     private final UnitOfMeasureRepository unitOfMeasureRepository;
+    private final RecipeReactiveRepository recipeReactiveRepository;
+    private final CategoryReactiveRepository categoryReactiveRepository;
+    private final UnitOfMeasureReactiveRepository unitOfMeasureReactiveRepository;
 
-    @Autowired
-    UnitOfMeasureReactiveRepository unitOfMeasureReactiveRepository;
+    //@Autowired
+    //UnitOfMeasureReactiveRepository unitOfMeasureReactiveRepository;
 
     Map<String, UnitOfMeasure >uomS = Map.ofEntries(
             entry("",new UnitOfMeasure()),
@@ -51,10 +56,13 @@ public class BootStrapDataDefault implements CommandLineRunner {
             entry("Fast Food",new Category())
     );
 
-    public BootStrapDataDefault(RecipeRepository recipeRepository, CategoryRepository categoryRepository, UnitOfMeasureRepository unitOfMeasureRepository) {
+    public BootStrapDataDefault(RecipeRepository recipeRepository, CategoryRepository categoryRepository, UnitOfMeasureRepository unitOfMeasureRepository, RecipeReactiveRepository recipeReactiveRepository, CategoryReactiveRepository categoryReactiveRepository, UnitOfMeasureReactiveRepository unitOfMeasureReactiveRepository) {
         this.recipeRepository = recipeRepository;
         this.categoryRepository = categoryRepository;
         this.unitOfMeasureRepository = unitOfMeasureRepository;
+        this.recipeReactiveRepository = recipeReactiveRepository;
+        this.categoryReactiveRepository = categoryReactiveRepository;
+        this.unitOfMeasureReactiveRepository = unitOfMeasureReactiveRepository;
     }
 
     @Transactional
@@ -185,6 +193,8 @@ public class BootStrapDataDefault implements CommandLineRunner {
         recipeRepository.save(initGuacamole());
         recipeRepository.save(initSpicyGCTacos());
         log.error("### Play with Mongo reactive driver ###");
+        log.error("Count recipe using reactive Mongo Driver:"+recipeReactiveRepository.count().block().toString());
+        log.error("Count recipe using reactive Mongo Driver:"+categoryReactiveRepository.count().block().toString());
         log.error("Count uom using reactive Mongo Driver:"+unitOfMeasureReactiveRepository.count().block().toString());
     }
 
