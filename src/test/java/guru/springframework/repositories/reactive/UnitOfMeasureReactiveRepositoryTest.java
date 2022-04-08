@@ -17,7 +17,7 @@ import static org.junit.jupiter.api.Assertions.*;
 @ExtendWith(SpringExtension.class)
 @DataMongoTest
 @Slf4j
-class UnitOfMeasureReactiveRepositoryIT {
+class UnitOfMeasureReactiveRepositoryTest {
 
     @Autowired
     UnitOfMeasureReactiveRepository unitOfMeasureReactiveRepository;
