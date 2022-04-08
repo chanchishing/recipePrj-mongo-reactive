@@ -20,7 +20,7 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 //@DataJpaTest
 @DataMongoTest
 
-class UnitOfMeasureRepositoryTest {
+class UnitOfMeasureRepositoryIT {
 
     @Autowired
     UnitOfMeasureRepository unitOfMeasureRepository;

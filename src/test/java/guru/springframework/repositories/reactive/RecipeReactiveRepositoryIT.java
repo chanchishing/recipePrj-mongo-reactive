@@ -14,7 +14,7 @@ import static org.junit.jupiter.api.Assertions.*;
 @ExtendWith(SpringExtension.class)
 @DataMongoTest
 @Slf4j
-class RecipeReactiveRepositoryTest {
+class RecipeReactiveRepositoryIT {
 
     private static final String SOME_DESCRIPTION = "Some Description";
 
