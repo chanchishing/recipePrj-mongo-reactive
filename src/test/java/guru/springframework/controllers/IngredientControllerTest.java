@@ -14,17 +14,10 @@ import org.mockito.Mock;
 import org.mockito.MockitoAnnotations;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.setup.MockMvcBuilders;
-import org.springframework.ui.Model;
+import reactor.core.publisher.Flux;
 
-
-import java.util.HashSet;
-import java.util.Set;
-
-import static org.hamcrest.Matchers.hasProperty;
-import static org.hamcrest.Matchers.is;
-import static org.hamcrest.Matchers.hasSize;
-
-
+import static org.hamcrest.Matchers.*;
+import static org.mockito.Mockito.any;
 import static org.mockito.Mockito.*;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
@@ -50,7 +43,6 @@ class IngredientControllerTest {
     private UnitOfMeasureService mockUnitOfMeasureService;
 
     @Mock
-    private Model mockModel;
     private AutoCloseable closeable;
 
 
@@ -117,13 +109,10 @@ class IngredientControllerTest {
         uomCommand1.setId(uom1TestId);
         UnitOfMeasureCommand uomCommand2 = new UnitOfMeasureCommand();
         uomCommand2.setId(uom2TestId);
-        Set<UnitOfMeasureCommand> uomTestList = new HashSet<>();
-        uomTestList.add(uomCommand1);
-        uomTestList.add(uomCommand2);
-
+        Flux<UnitOfMeasureCommand> uomCommandFlux=Flux.just(uomCommand1,uomCommand2);
 
         when(mockIngredientService.findByRecipeIDAndIngredientId(testIdStr, testIngredientIdStr)).thenReturn(ingredientCommand);
-        when(mockUnitOfMeasureService.getUomList()).thenReturn(uomTestList);
+        when(mockUnitOfMeasureService.getUomList()).thenReturn(uomCommandFlux);
 
 
         mockMvc.perform(get("/recipe/" + testIdStr + "/ingredients/" + testIngredientIdStr + "/update"))
@@ -163,14 +152,12 @@ class IngredientControllerTest {
         uomCommand1.setId(uom1TestId);
         UnitOfMeasureCommand uomCommand2 = new UnitOfMeasureCommand();
         uomCommand2.setId(uom2TestId);
-        Set<UnitOfMeasureCommand> uomTestList = new HashSet<>();
-        uomTestList.add(uomCommand1);
-        uomTestList.add(uomCommand2);
+        Flux<UnitOfMeasureCommand> uomCommandFlux= Flux.just(uomCommand1,uomCommand2);
 
         Recipe mockRecipe=new Recipe();
         mockRecipe.setId(testRecipeId);
 
-        when(mockUnitOfMeasureService.getUomList()).thenReturn(uomTestList);
+        when(mockUnitOfMeasureService.getUomList()).thenReturn(uomCommandFlux);
         when(mockRecipeService.getRecipe(anyString())).thenReturn(mockRecipe);
 
         mockMvc.perform(get("/recipe/" + testIdStr + "/ingredients/new"))
@@ -179,8 +166,8 @@ class IngredientControllerTest {
                 .andExpect(model().attributeExists("ingredient"))
                 .andExpect(model().attributeExists("uomList"))
                 .andExpect(model().attribute("ingredient",hasProperty("recipeId",is(testIdStr))))
-                .andExpect(model().attribute("uomList",hasSize(uomTestList.size())));
-
+                //.andExpect(model().attribute("uomList",hasSize(uomTestList.size())));
+                .andExpect(model().attribute("uomList",hasSize(uomCommandFlux.collectList().block().size())));
 
     }
 

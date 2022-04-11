@@ -55,7 +55,7 @@ public class IngredientController {
         );
         model.addAttribute(
                 "uomList",
-                unitOfMeasureService.getUomList()
+                unitOfMeasureService.getUomList().collectList().block()
         );
 
         return "/recipe/ingredient/ingredientForm";
@@ -87,7 +87,7 @@ public class IngredientController {
         ingredientCommand.setUom(new UnitOfMeasureCommand());
 
         model.addAttribute("ingredient", ingredientCommand);
-        model.addAttribute("uomList", unitOfMeasureService.getUomList());
+        model.addAttribute("uomList", unitOfMeasureService.getUomList().collectList().block());
 
         return "/recipe/ingredient/ingredientForm";
     }
