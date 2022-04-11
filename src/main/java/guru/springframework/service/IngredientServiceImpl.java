@@ -6,11 +6,12 @@ import guru.springframework.converters.IngredientCommandToIngredient;
 import guru.springframework.converters.IngredientToIngredientCommand;
 import guru.springframework.model.Ingredient;
 import guru.springframework.model.Recipe;
-import guru.springframework.repositories.RecipeRepository;
-import guru.springframework.repositories.UnitOfMeasureRepository;
+import guru.springframework.repositories.reactive.RecipeReactiveRepository;
+import guru.springframework.repositories.reactive.UnitOfMeasureReactiveRepository;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import reactor.core.publisher.Mono;
 
 import java.util.NoSuchElementException;
 import java.util.Set;
@@ -19,39 +20,72 @@ import java.util.UUID;
 @Slf4j
 @Service
 public class IngredientServiceImpl implements IngredientService{
-    private final RecipeRepository recipeRepository;
-    private final UnitOfMeasureRepository uomRepository;
+    private final RecipeReactiveRepository recipeReactiveRepository;
+    private final UnitOfMeasureReactiveRepository uomReactiveRepository;
     private final IngredientToIngredientCommand ingredientToCommand;
     private final IngredientCommandToIngredient commandToIngredient;
 
-    public IngredientServiceImpl(RecipeRepository recipeRepository, UnitOfMeasureRepository uomRepository, IngredientToIngredientCommand ingredientToCommand, IngredientCommandToIngredient commandToIngredient) {
-        this.recipeRepository = recipeRepository;
-        this.uomRepository = uomRepository;
+    public IngredientServiceImpl(RecipeReactiveRepository recipeReactiveRepository, UnitOfMeasureReactiveRepository uomReactiveRepository, IngredientToIngredientCommand ingredientToCommand, IngredientCommandToIngredient commandToIngredient) {
+        this.recipeReactiveRepository = recipeReactiveRepository;
+        this.uomReactiveRepository = uomReactiveRepository;
         this.ingredientToCommand = ingredientToCommand;
         this.commandToIngredient = commandToIngredient;
     }
 
     @Override
-    public IngredientCommand findByRecipeIDAndIngredientId(String recipeId, String ingredientId) {
-        Recipe recipe=recipeRepository.findById(recipeId).get();
-        Set<Ingredient> ingredientSet=recipe.getIngredients();
+    public Mono<IngredientCommand> findByRecipeIDAndIngredientId(String recipeId, String ingredientId) {
 
-        Ingredient ingredient=ingredientSet.stream().filter(element->element.getId().equals(ingredientId)).findFirst().get();
+        Mono<Recipe> monoRecipe =recipeReactiveRepository.findById(recipeId);
 
-        IngredientCommand ingredientCommand=ingredientToCommand.convert(ingredient);
-        ingredientCommand.setRecipeId(recipeId);
+        return monoRecipe.map(recipe-> {
+            Set<Ingredient> ingredientSet=recipe.getIngredients();
+            Ingredient ingredient=ingredientSet.stream().filter(element->element.getId().equals(ingredientId)).findFirst().orElseThrow();
+            return ingredientToCommand.convert(ingredient);
+        });
 
-        return ingredientCommand;
     }
+
+    //@Override
+    //@Transactional
+    //public void deleteAnIngredient(String recipeId, String ingredientId) {
+    //
+    //    Recipe recipe;
+    //
+    //    //Check recipe of Ingredient is an existing recipe
+    //    try {
+    //        recipe = recipeRepository.findById(recipeId).orElseThrow();
+    //    } catch (NoSuchElementException noElement) {
+    //        log.error("Recipe Not Found");
+    //        throw noElement;
+    //    } catch (Exception e){
+    //        throw e;
+    //    }
+    //
+    //    recipe.getIngredients().stream().filter(element->element.getId().equals(ingredientId)).findFirst().ifPresentOrElse(
+    //            //ingredient is an existing ingredient of recipe,remove it
+    //            (ingredient) -> {
+    //                //ingredient.setRecipe(null);
+    //                recipe.getIngredients().remove(ingredient);
+    //            },
+    //            //ingredient is not an existing ingredient, cannot delete
+    //            () ->{
+    //                log.error("Ingredient is not existing ingredient");
+    //                throw new NoSuchElementException();
+    //            }
+    //    );
+    //
+    //    Recipe savedRecipe=recipeRepository.save(recipe);
+    //
+    //}
 
     @Transactional
     @Override
-    public IngredientCommand saveIngredient(IngredientCommand ingredientCommand) {
+    public Mono<IngredientCommand> saveIngredient(IngredientCommand ingredientCommand) {
         Recipe recipe;
 
         //Check recipe of Ingredient is an existing recipe
         try {
-            recipe = recipeRepository.findById(ingredientCommand.getRecipeId()).orElseThrow();
+            recipe = recipeReactiveRepository.findById(ingredientCommand.getRecipeId()).blockOptional().orElseThrow();
         } catch (NoSuchElementException noElement) {
             log.error("Recipe Not Found");
             throw noElement;
@@ -65,7 +99,7 @@ public class IngredientServiceImpl implements IngredientService{
                     ingredient.setDescription(ingredientCommand.getDescription());
                     ingredient.setAmount(ingredientCommand.getAmount());
                     try { //make sure uom already exists in DB
-                        ingredient.setUom(uomRepository.findById(ingredientCommand.getUom().getId()).orElseThrow());
+                        ingredient.setUom(uomReactiveRepository.findById(ingredientCommand.getUom().getId()).blockOptional().orElseThrow());
                     } catch (NoSuchElementException noElement){
                         log.error("Unit of Measure not found");
                         throw noElement;
@@ -75,7 +109,7 @@ public class IngredientServiceImpl implements IngredientService{
                 //ingredient is not an existing ingredient, also need to check uom already exist
                 () ->{
                     try { //make sure uom already exists in DB
-                        uomRepository.findById(ingredientCommand.getUom().getId()).orElseThrow();
+                        uomReactiveRepository.findById(ingredientCommand.getUom().getId()).blockOptional().orElseThrow();
                     } catch (NoSuchElementException noElement){
                         log.error("Unit of Measure not found");
                         throw noElement;
@@ -87,50 +121,12 @@ public class IngredientServiceImpl implements IngredientService{
                 }
         );
 
-        Recipe savedRecipe=recipeRepository.save(recipe);
-        Ingredient savedIngredient = savedRecipe.getIngredients().stream().filter(
-                                        ingredient -> (
-                                                //ingredient.getRecipe().getId()==ingredientCommand.getRecipeId() &&
-                                                ingredient.getDescription().equals(ingredientCommand.getDescription()) &&
-                                                ingredient.getAmount()==ingredientCommand.getAmount() &&
-                                                ingredient.getUom().getId().equals(ingredientCommand.getUom().getId()))
-                                        ).findFirst().get();
+        Mono<Recipe> savedRecipeMono=recipeReactiveRepository.save(recipe);
 
-        IngredientCommand savedIngredientCommand=ingredientToCommand.convert(savedIngredient);
-        savedIngredientCommand.setRecipeId(savedRecipe.getId());
-        return savedIngredientCommand;
-    }
-
-    @Transactional
-    @Override
-    public void deleteAnIngredient(String recipeId, String ingredientId) {
-
-        Recipe recipe;
-
-        //Check recipe of Ingredient is an existing recipe
-        try {
-            recipe = recipeRepository.findById(recipeId).orElseThrow();
-        } catch (NoSuchElementException noElement) {
-            log.error("Recipe Not Found");
-            throw noElement;
-        } catch (Exception e){
-            throw e;
-        }
-
-        recipe.getIngredients().stream().filter(element->element.getId().equals(ingredientId)).findFirst().ifPresentOrElse(
-                //ingredient is an existing ingredient of recipe,remove it
-                (ingredient) -> {
-                    //ingredient.setRecipe(null);
-                    recipe.getIngredients().remove(ingredient);
-                },
-                //ingredient is not an existing ingredient, cannot delete
-                () ->{
-                    log.error("Ingredient is not existing ingredient");
-                    throw new NoSuchElementException();
-                }
-        );
-
-        Recipe savedRecipe=recipeRepository.save(recipe);
-
+        return savedRecipeMono.map(savedRecipe-> {
+            Set<Ingredient> ingredientSet=savedRecipe.getIngredients();
+            Ingredient ingredient=ingredientSet.stream().filter(element->element.getId().equals(ingredientCommand.getId())).findFirst().orElseThrow();
+            return ingredientToCommand.convert(ingredient);
+        });
     }
 }
