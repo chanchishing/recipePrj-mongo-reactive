@@ -1,8 +1,6 @@
 package guru.springframework.service;
 
 import guru.springframework.commands.IngredientCommand;
-import guru.springframework.commands.RecipeCommand;
-import guru.springframework.commands.UnitOfMeasureCommand;
 import guru.springframework.converters.IngredientCommandToIngredient;
 import guru.springframework.converters.IngredientToIngredientCommand;
 import guru.springframework.converters.UnitOfMeasureCommandToUnitOfMeasure;
@@ -34,7 +32,7 @@ class IngredientServiceImplTest {
     @Mock
     UnitOfMeasureReactiveRepository mockUomReactiveRepository;
 
-    IngredientToIngredientCommand IngredientToCommand = new IngredientToIngredientCommand(new UnitOfMeasureToUnitOfMeasureCommand());
+    IngredientToIngredientCommand ingredientToCommand = new IngredientToIngredientCommand(new UnitOfMeasureToUnitOfMeasureCommand());
     IngredientCommandToIngredient commandToIngredient = new IngredientCommandToIngredient(new UnitOfMeasureCommandToUnitOfMeasure());
 
     private AutoCloseable closeable;
@@ -42,7 +40,7 @@ class IngredientServiceImplTest {
     @BeforeEach
     void setUp() {
         closeable = MockitoAnnotations.openMocks(this);
-        ingredientService = new IngredientServiceImpl(mockRecipeReactiveRepository, mockUomReactiveRepository, IngredientToCommand, commandToIngredient);
+        ingredientService = new IngredientServiceImpl(mockRecipeReactiveRepository, mockUomReactiveRepository, ingredientToCommand, commandToIngredient);
     }
 
     @AfterEach
@@ -89,70 +87,78 @@ class IngredientServiceImplTest {
         String testIngredientDescription = "test Ingredient Description";
         String b4IngredientDescription = "b4 Ingredient Description";
 
-        Mono<UnitOfMeasure> uomMono= Mono.just(new UnitOfMeasure());
 
-        IngredientCommand ingredientCommand = new IngredientCommand();
-        ingredientCommand.setId(testIngredientId);
+        UnitOfMeasure mockUom = new UnitOfMeasure();
+        mockUom.setId(testUOMId);
+        Mono<UnitOfMeasure> mockUomMono= Mono.just(mockUom);
+
+        Recipe mockB4Recipe = new Recipe();
+        mockB4Recipe.setId(testRecipeId);
+        Ingredient mockB4Ingredient = new Ingredient();
+        mockB4Ingredient.setId(testIngredientId);
+        mockB4Ingredient.setDescription(b4IngredientDescription);
+        mockB4Ingredient.setAmount(testIngredientAmount);
+        mockB4Ingredient.setUom(mockUom);
+        mockB4Recipe.getIngredients().add(mockB4Ingredient);
+        Mono<Recipe> mockB4RecipeMono = Mono.just(mockB4Recipe);
+        IngredientCommand ingredientCommand=ingredientToCommand.convert(mockB4Ingredient);
         ingredientCommand.setRecipeId(testRecipeId);
-        ingredientCommand.setDescription(b4IngredientDescription);
-        ingredientCommand.setAmount(testIngredientAmount);
-        UnitOfMeasureCommand uomCommand = new UnitOfMeasureCommand();
-        uomCommand.setId(testUOMId);
-
-        RecipeCommand mockB4Recipe = new RecipeCommand();
-        mockB4Recipe.setId(testIngredientId);
-        mockB4Recipe.getIngredients().add(ingredientCommand);
-
-
-
 
         Recipe mockSavedRecipe = new Recipe();
         mockSavedRecipe.setId(testRecipeId);
         Ingredient mockSavedIngredient = new Ingredient();
         mockSavedIngredient.setId(testIngredientId);
-        //mockSavedIngredient.setRecipe(mockSavedRecipe);
         mockSavedIngredient.setDescription(testIngredientDescription);
         mockSavedIngredient.setAmount(testIngredientAmount);
-        UnitOfMeasure mockSavedUom = new UnitOfMeasure();
-        mockSavedUom.setId(testUOMId);
-        mockSavedIngredient.setUom(mockSavedUom);
+        mockSavedIngredient.setUom(mockUom);
         mockSavedRecipe.getIngredients().add(mockSavedIngredient);
-        Mono<Recipe> mockMonoSavedRecipe=Mono.just(mockSavedRecipe);
+        Mono<Recipe> mockSavedRecipeMono = Mono.just(mockSavedRecipe);
 
 
-        when(mockRecipeReactiveRepository.findById(anyString())).thenReturn(recipeMono);
-        when(mockUomReactiveRepository.findById(anyString())).thenReturn(uomMono);
-        when(mockRecipeReactiveRepository.save(any(Recipe.class))).thenReturn(mockMonoSavedRecipe);
+
+
+        when(mockRecipeReactiveRepository.findById(anyString())).thenReturn(mockB4RecipeMono);
+        when(mockUomReactiveRepository.findById(anyString())).thenReturn(mockUomMono);
+        when(mockRecipeReactiveRepository.save(any(Recipe.class))).thenReturn(mockSavedRecipeMono);
 
         IngredientCommand resultCommand = ingredientService.saveIngredient(ingredientCommand).block();
 
         assertEquals(testIngredientId, resultCommand.getId());
         assertEquals(testIngredientDescription, resultCommand.getDescription());
+        assertEquals(testRecipeId,resultCommand.getRecipeId());
         verify(mockRecipeReactiveRepository, times(1)).findById(testRecipeId);
         verify(mockUomReactiveRepository, times(1)).findById(testUOMId);
         verify(mockRecipeReactiveRepository, times(1)).save(any(Recipe.class));
 
     }
 
-    //@Test
-    //void deleteAnIngredient() {
-    //    String testRecipeId = "11";
-    //    String testIngredientId = "3";
-    //
-    //    Optional<Recipe> recipeOptional = Optional.of(new Recipe());
-    //    Ingredient ingredient = new Ingredient();
-    //    ingredient.setId(testIngredientId);
-    //
-    //    recipeOptional.get().setId(testIngredientId);
-    //    recipeOptional.get().getIngredients().add(ingredient);
-    //
-    //    when(mockRecipeRepository.findById(any())).thenReturn(recipeOptional);
-    //
-    //    ingredientService.deleteAnIngredient(testRecipeId, testIngredientId);
-    //    verify(mockRecipeRepository, times(1)).findById(testRecipeId);
-    //    verify(mockRecipeRepository, times(1)).save(recipeOptional.get());
-    //
-    //
-    //}
+    @Test
+    void deleteAnIngredient() {
+        String testRecipeId = "11";
+        String testIngredientId = "3";
+
+        Recipe recipe = new Recipe();
+        Ingredient ingredient = new Ingredient();
+        ingredient.setId(testIngredientId);
+
+        recipe.setId(testRecipeId);
+        recipe.getIngredients().add(ingredient);
+        Mono<Recipe> monoRecipe=Mono.just(recipe);
+
+
+        Recipe savedRecipe = new Recipe();
+        savedRecipe.setId(testRecipeId);
+        Mono<Recipe> monoSavedRecipe=Mono.just(savedRecipe);
+
+
+        when(mockRecipeReactiveRepository.findById(anyString())).thenReturn(monoRecipe);
+        when(mockRecipeReactiveRepository.save(any())).thenReturn(monoSavedRecipe);
+
+        ingredientService.deleteAnIngredient(testRecipeId, testIngredientId);
+        verify(mockRecipeReactiveRepository, times(1)).findById(testRecipeId);
+        verify(mockRecipeReactiveRepository, times(1)).save(recipe);
+
+
+    }
 
 }

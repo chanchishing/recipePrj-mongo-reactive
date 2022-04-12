@@ -45,38 +45,38 @@ public class IngredientServiceImpl implements IngredientService{
 
     }
 
-    //@Override
-    //@Transactional
-    //public void deleteAnIngredient(String recipeId, String ingredientId) {
-    //
-    //    Recipe recipe;
-    //
-    //    //Check recipe of Ingredient is an existing recipe
-    //    try {
-    //        recipe = recipeRepository.findById(recipeId).orElseThrow();
-    //    } catch (NoSuchElementException noElement) {
-    //        log.error("Recipe Not Found");
-    //        throw noElement;
-    //    } catch (Exception e){
-    //        throw e;
-    //    }
-    //
-    //    recipe.getIngredients().stream().filter(element->element.getId().equals(ingredientId)).findFirst().ifPresentOrElse(
-    //            //ingredient is an existing ingredient of recipe,remove it
-    //            (ingredient) -> {
-    //                //ingredient.setRecipe(null);
-    //                recipe.getIngredients().remove(ingredient);
-    //            },
-    //            //ingredient is not an existing ingredient, cannot delete
-    //            () ->{
-    //                log.error("Ingredient is not existing ingredient");
-    //                throw new NoSuchElementException();
-    //            }
-    //    );
-    //
-    //    Recipe savedRecipe=recipeRepository.save(recipe);
-    //
-    //}
+    @Override
+    @Transactional
+    public void deleteAnIngredient(String recipeId, String ingredientId) {
+
+        Recipe recipe;
+
+        //Check recipe of Ingredient is an existing recipe
+        try {
+            recipe = recipeReactiveRepository.findById(recipeId).blockOptional().orElseThrow();
+        } catch (NoSuchElementException noElement) {
+            log.error("Recipe Not Found");
+            throw noElement;
+        } catch (Exception e){
+            throw e;
+        }
+
+        recipe.getIngredients().stream().filter(element->element.getId().equals(ingredientId)).findFirst().ifPresentOrElse(
+                //ingredient is an existing ingredient of recipe,remove it
+                (ingredient) -> {
+                    //ingredient.setRecipe(null);
+                    recipe.getIngredients().remove(ingredient);
+                },
+                //ingredient is not an existing ingredient, cannot delete
+                () ->{
+                    log.error("Ingredient is not existing ingredient");
+                    throw new NoSuchElementException();
+                }
+        );
+
+        Recipe savedRecipe=recipeReactiveRepository.save(recipe).block();
+
+    }
 
     @Transactional
     @Override
@@ -126,7 +126,9 @@ public class IngredientServiceImpl implements IngredientService{
         return savedRecipeMono.map(savedRecipe-> {
             Set<Ingredient> ingredientSet=savedRecipe.getIngredients();
             Ingredient ingredient=ingredientSet.stream().filter(element->element.getId().equals(ingredientCommand.getId())).findFirst().orElseThrow();
-            return ingredientToCommand.convert(ingredient);
+            IngredientCommand savedIngredientCommand =ingredientToCommand.convert(ingredient);
+            savedIngredientCommand.setRecipeId(ingredientCommand.getRecipeId());
+            return savedIngredientCommand;
         });
     }
 }

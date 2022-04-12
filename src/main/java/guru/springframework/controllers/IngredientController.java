@@ -61,13 +61,13 @@ public class IngredientController {
         return "/recipe/ingredient/ingredientForm";
     }
 
-    //@PostMapping("/recipe/{recipeId}/ingredient")
-    //public String updateIngredient(@ModelAttribute IngredientCommand command){
-    //    IngredientCommand savedIngredientCommand=ingredientService.saveIngredient(command);
-    //
-    //    return "redirect:/recipe/" + savedIngredientCommand.getRecipeId() + "/ingredients/" + savedIngredientCommand.getId() + "/show" ;
-    //
-    //}
+    @PostMapping("/recipe/{recipeId}/ingredient")
+    public String updateIngredient(@ModelAttribute IngredientCommand command){
+        IngredientCommand savedIngredientCommand=ingredientService.saveIngredient(command).block();
+
+        return "redirect:/recipe/" + savedIngredientCommand.getRecipeId() + "/ingredients/" + savedIngredientCommand.getId() + "/show" ;
+
+    }
 
 
     @GetMapping("/recipe/{recipeId}/ingredients/new")
@@ -93,12 +93,12 @@ public class IngredientController {
     }
 
 
-    //@GetMapping("/recipe/{recipeId}/ingredients/{ingredientId}/delete")
-    //public String deleteIngredient(@PathVariable String recipeId, @PathVariable String ingredientId, Model model){
-    //
-    //    ingredientService.deleteAnIngredient(recipeId, ingredientId);
-    //
-    //    return "redirect:/recipe/" + recipeId + "/ingredients/";
-    //}
+    @GetMapping("/recipe/{recipeId}/ingredients/{ingredientId}/delete")
+    public String deleteIngredient(@PathVariable String recipeId, @PathVariable String ingredientId, Model model){
+
+        ingredientService.deleteAnIngredient(recipeId, ingredientId);
+
+        return "redirect:/recipe/" + recipeId + "/ingredients/";
+    }
 
 }
