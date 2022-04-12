@@ -43,11 +43,13 @@ public class IngredientServiceImpl implements IngredientService{
             return ingredientToCommand.convert(ingredient);
         });
 
+
+
     }
 
     @Override
     @Transactional
-    public void deleteAnIngredient(String recipeId, String ingredientId) {
+    public Mono<Void> deleteAnIngredient(String recipeId, String ingredientId) {
 
         Recipe recipe;
 
@@ -75,6 +77,8 @@ public class IngredientServiceImpl implements IngredientService{
         );
 
         Recipe savedRecipe=recipeReactiveRepository.save(recipe).block();
+
+        return Mono.empty();
 
     }
 
