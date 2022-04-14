@@ -4,11 +4,9 @@ package guru.springframework.controllers;
 import guru.springframework.model.Recipe;
 import guru.springframework.service.RecipeService;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.GetMapping;
-
 
 import java.util.List;
 
@@ -25,7 +23,7 @@ public class IndexController {
     @GetMapping({"","/","/index"})
     public String getIndexPage(Model model){
 
-        List<Recipe> recipeList=recipeService.getRecipeList();
+        List<Recipe> recipeList= recipeService.getRecipeList().collectList().block();
 
         //System.out.println("Number of Recipe:" + recipeList.size());
         log.debug("Number of Recipe:" + recipeList.size());

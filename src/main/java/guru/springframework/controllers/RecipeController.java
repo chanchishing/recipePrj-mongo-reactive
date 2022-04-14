@@ -1,25 +1,19 @@
 package guru.springframework.controllers;
 
 
-import guru.springframework.commands.IngredientCommand;
 import guru.springframework.commands.RecipeCommand;
-import guru.springframework.exceptions.NotFoundException;
 import guru.springframework.model.Recipe;
 import guru.springframework.service.RecipeService;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Controller;
-import org.springframework.transaction.annotation.Transactional;
 import org.springframework.ui.Model;
 import org.springframework.validation.BindingResult;
-import org.springframework.web.bind.annotation.*;
-import org.springframework.web.servlet.ModelAndView;
+import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.ModelAttribute;
+import org.springframework.web.bind.annotation.PathVariable;
+import org.springframework.web.bind.annotation.PostMapping;
 
 import javax.validation.Valid;
-import java.util.ArrayList;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Set;
 
 
 @Slf4j
@@ -39,7 +33,7 @@ public class RecipeController {
 
         log.debug("Inside RecipeController.getRecipePage()"+id);
 
-        Recipe recipe=recipeService.getRecipe(id);
+        Recipe recipe=recipeService.getRecipe(id).block();
         model.addAttribute("recipe",recipe);
 
         return "/recipe/show";
@@ -59,16 +53,16 @@ public class RecipeController {
         if (bindingResult.hasErrors()) {
             bindingResult.getAllErrors().forEach((error)->log.error(error.toString()));
 
-            if  (command.getId()!=null) {
-                RecipeCommand freshRecipeFromDB = recipeService.getRecipeCommandById(command.getId());
-                command.setIngredients(freshRecipeFromDB.getIngredients());
-            }
+            //if  (command.getId()!=null) {
+            //    RecipeCommand freshRecipeFromDB = recipeService.getRecipeCommandById(command.getId()).block();
+            //    command.setIngredients(freshRecipeFromDB.getIngredients());
+            //}
 
             return RECIPE_RECIPEFORM_URL;
 
         }
 
-        RecipeCommand savedCommand=recipeService.saveRecipe(command);
+        RecipeCommand savedCommand=recipeService.saveRecipe(command).block();
         return("redirect:/recipe/"+savedCommand.getId()+"/show/");
 
     }
@@ -76,7 +70,7 @@ public class RecipeController {
 
     @GetMapping("/recipe/{id}/update")
     public String updateRecipe(@PathVariable String id,Model model){
-        RecipeCommand recipeCommand=recipeService.getRecipeCommandById(id);
+        RecipeCommand recipeCommand=recipeService.getRecipeCommandById(id).block();
         model.addAttribute("recipe", recipeCommand);
         return RECIPE_RECIPEFORM_URL;
     }

@@ -31,7 +31,7 @@ public class IngredientController {
 
     @GetMapping("/recipe/{id}/ingredients")
     public String listIngredients(@PathVariable String id, Model model){
-        RecipeCommand recipeCommand=recipeService.getRecipeCommandById(id);
+        RecipeCommand recipeCommand=recipeService.getRecipeCommandById(id).block();
         model.addAttribute("recipe", recipeCommand);
         return "/recipe/ingredient/list";
     }
@@ -70,7 +70,7 @@ public class IngredientController {
     public String loadIngredientFormToAdd(@PathVariable String recipeId, Model model) {
 
         try {
-            Recipe recipe = recipeService.getRecipe(recipeId);
+            Recipe recipe = recipeService.getRecipe(recipeId).blockOptional().orElseThrow();
         } catch (NoSuchElementException noSuchElementException) {
             log.info("Recipe Not Found");
             throw noSuchElementException;

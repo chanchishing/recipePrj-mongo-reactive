@@ -1,11 +1,9 @@
 package guru.springframework.controllers;
 
-import guru.springframework.commands.IngredientCommand;
 import guru.springframework.commands.RecipeCommand;
 import guru.springframework.exceptions.NotFoundException;
 import guru.springframework.model.Recipe;
 import guru.springframework.service.RecipeServiceImpl;
-import org.hamcrest.Matchers;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Disabled;
@@ -17,15 +15,11 @@ import org.springframework.http.MediaType;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.setup.MockMvcBuilders;
 import org.springframework.ui.Model;
-
-
-import java.util.HashSet;
-import java.util.Set;
+import reactor.core.publisher.Mono;
 
 import static org.hamcrest.Matchers.instanceOf;
 import static org.hamcrest.Matchers.is;
-import static org.hamcrest.beans.HasProperty.hasProperty;
-import static org.junit.jupiter.api.Assertions.*;
+import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.mockito.Mockito.*;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
@@ -69,7 +63,7 @@ class RecipeControllerTest {
         Recipe recipe = new Recipe();
         recipe.setId(testIdStr);
 
-        when(mockRecipeService.getRecipe(testIdStr)).thenReturn(recipe);
+        when(mockRecipeService.getRecipe(testIdStr)).thenReturn(Mono.just(recipe));
         ArgumentCaptor<Recipe> argumentCaptor = ArgumentCaptor.forClass(Recipe.class);
 
         //when
@@ -115,7 +109,7 @@ class RecipeControllerTest {
         Recipe recipe = new Recipe();
         recipe.setId(testIdStr);
 
-        when(mockRecipeService.getRecipe(testIdStr)).thenReturn(recipe);
+        when(mockRecipeService.getRecipe(testIdStr)).thenReturn(Mono.just(recipe));
 
         mockMvc.perform(get("/recipe/" + testIdStr + "/show/"))
                 .andExpect(status().isOk())
@@ -141,7 +135,7 @@ class RecipeControllerTest {
         RecipeCommand outputCommand = new RecipeCommand();
         outputCommand.setId(testIdStr);
 
-        when(mockRecipeService.saveRecipe(any())).thenReturn(outputCommand);
+        when(mockRecipeService.saveRecipe(any())).thenReturn(Mono.just(outputCommand));
 
         mockMvc.perform(post("/recipe")
                         .contentType(MediaType.APPLICATION_FORM_URLENCODED)
@@ -162,8 +156,8 @@ class RecipeControllerTest {
         RecipeCommand outputCommand = new RecipeCommand();
         outputCommand.setId(testIdStr);
 
-        when(mockRecipeService.saveRecipe(any())).thenReturn(outputCommand);
-        when(mockRecipeService.getRecipeCommandById(any())).thenReturn(outputCommand);
+        when(mockRecipeService.saveRecipe(any())).thenReturn(Mono.just(outputCommand));
+        when(mockRecipeService.getRecipeCommandById(any())).thenReturn(Mono.just(outputCommand));
 
         mockMvc.perform(post("/recipe")
                         .contentType(MediaType.APPLICATION_FORM_URLENCODED)
@@ -182,7 +176,7 @@ class RecipeControllerTest {
         RecipeCommand recipeCommand = new RecipeCommand();
         recipeCommand.setId(testIdStr);
 
-        when(mockRecipeService.getRecipeCommandById(testIdStr)).thenReturn(recipeCommand);
+        when(mockRecipeService.getRecipeCommandById(testIdStr)).thenReturn(Mono.just(recipeCommand));
 
         mockMvc.perform(get("/recipe/" + testIdStr + "/update/"))
                 .andExpect(status().isOk())

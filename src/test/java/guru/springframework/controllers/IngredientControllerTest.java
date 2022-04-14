@@ -69,7 +69,7 @@ class IngredientControllerTest {
         RecipeCommand recipeCommand = new RecipeCommand();
         recipeCommand.setId(testIdStr);
 
-        when(mockRecipeService.getRecipeCommandById(testIdStr)).thenReturn(recipeCommand);
+        when(mockRecipeService.getRecipeCommandById(testIdStr)).thenReturn(Mono.just(recipeCommand));
 
         mockMvc.perform(get("/recipe/" + testIdStr + "/ingredients/"))
                 .andExpect(status().isOk())
@@ -163,7 +163,7 @@ class IngredientControllerTest {
         mockRecipe.setId(testRecipeId);
 
         when(mockUnitOfMeasureService.getUomList()).thenReturn(uomCommandFlux);
-        when(mockRecipeService.getRecipe(anyString())).thenReturn(mockRecipe);
+        when(mockRecipeService.getRecipe(anyString())).thenReturn(Mono.just(mockRecipe));
 
         mockMvc.perform(get("/recipe/" + testIdStr + "/ingredients/new"))
                 .andExpect(status().isOk())

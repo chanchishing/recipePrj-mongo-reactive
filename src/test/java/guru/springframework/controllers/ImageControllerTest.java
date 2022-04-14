@@ -2,8 +2,6 @@ package guru.springframework.controllers;
 
 import guru.springframework.commands.RecipeCommand;
 import guru.springframework.exceptions.NotFoundException;
-import guru.springframework.model.Recipe;
-import guru.springframework.repositories.RecipeRepository;
 import guru.springframework.service.ImageService;
 import guru.springframework.service.RecipeService;
 import org.junit.jupiter.api.AfterEach;
@@ -16,14 +14,10 @@ import org.springframework.mock.web.MockHttpServletResponse;
 import org.springframework.mock.web.MockMultipartFile;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.setup.MockMvcBuilders;
-import org.springframework.web.multipart.MultipartFile;
-
-import java.nio.charset.StandardCharsets;
-import java.util.Optional;
+import reactor.core.publisher.Mono;
 
 import static org.hamcrest.Matchers.*;
-import static org.junit.jupiter.api.Assertions.*;
-import static org.mockito.ArgumentMatchers.anyLong;
+import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.mockito.Mockito.*;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.multipart;
@@ -64,7 +58,7 @@ class ImageControllerTest {
         RecipeCommand recipeCommand= new RecipeCommand();
         recipeCommand.setId(testRecipeId);
 
-        when(mockRecipeService.getRecipeCommandById(anyString())).thenReturn(recipeCommand);
+        when(mockRecipeService.getRecipeCommandById(anyString())).thenReturn(Mono.just(recipeCommand));
 
         mockMvc.perform(get("/recipe/"+testRecipeIdString+"/image"))
                 .andExpect(status().isOk())
@@ -135,7 +129,7 @@ class ImageControllerTest {
 
         command.setImage(bytesBoxed);
 
-        when(mockRecipeService.getRecipeCommandById(anyString())).thenReturn(command);
+        when(mockRecipeService.getRecipeCommandById(anyString())).thenReturn(Mono.just(command));
 
         //when
         MockHttpServletResponse response = mockMvc.perform(get("/recipe/1/recipeimage"))
