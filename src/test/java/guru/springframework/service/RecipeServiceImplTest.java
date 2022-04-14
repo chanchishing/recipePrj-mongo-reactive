@@ -128,6 +128,9 @@ public class RecipeServiceImplTest {
     @Test
     void deleteRecipeById(){
 
+
+        when(mockRecipeReactiveRepository.deleteById(anyString())).thenReturn(Mono.empty());
+
         recipeService.deleteRecipeById(testId).block();
 
         verify(mockRecipeReactiveRepository,times(1)).deleteById(testId);
