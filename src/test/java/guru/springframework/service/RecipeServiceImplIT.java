@@ -34,7 +34,6 @@ class RecipeServiceImplIT {
 
 
     @Test
-    //@Transactional
     void saveRecipe() {
         Flux<Recipe> recipeList=recipeService.getRecipeList();
         Recipe tstRecipe=recipeList.blockFirst();

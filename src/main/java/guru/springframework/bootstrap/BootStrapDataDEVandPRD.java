@@ -1,17 +1,15 @@
 package guru.springframework.bootstrap;
 
 
-import guru.springframework.model.*;
+import guru.springframework.model.Category;
+import guru.springframework.model.UnitOfMeasure;
 import guru.springframework.repositories.CategoryRepository;
-import guru.springframework.repositories.RecipeRepository;
 import guru.springframework.repositories.UnitOfMeasureRepository;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.boot.CommandLineRunner;
 import org.springframework.context.annotation.Profile;
 import org.springframework.stereotype.Component;
-import org.springframework.transaction.annotation.Transactional;
 
-import java.math.BigDecimal;
 import java.util.ArrayList;
 import java.util.Arrays;
 
@@ -28,7 +26,6 @@ public class BootStrapDataDEVandPRD implements CommandLineRunner {
         this.unitOfMeasureRepository = unitOfMeasureRepository;
     }
 
-    @Transactional
     private void initUOMs() {
 
         ArrayList<String> uomDescriptionList= new ArrayList<String>(Arrays.asList(
@@ -51,7 +48,6 @@ public class BootStrapDataDEVandPRD implements CommandLineRunner {
 
     }
 
-    @Transactional
     private void initCategory() {
         ArrayList<String> catDescriptionList= new ArrayList<String>(Arrays.asList(
                 "American",

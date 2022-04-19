@@ -2,6 +2,7 @@ package guru.springframework.controllers;
 
 import guru.springframework.commands.RecipeCommand;
 import guru.springframework.exceptions.NotFoundException;
+import guru.springframework.model.Recipe;
 import guru.springframework.service.ImageService;
 import guru.springframework.service.RecipeService;
 import org.junit.jupiter.api.AfterEach;
@@ -100,6 +101,13 @@ class ImageControllerTest {
 
         MockMultipartFile mockImageFile= new MockMultipartFile("imagefile","testing.png",
                 "image/png","Just Some Bytes".getBytes());
+
+        Recipe mockSavedRecipe=new Recipe();
+        mockSavedRecipe.setId(testRecipeId);
+
+
+        when(mockImageService.saveRecipeImage(testRecipeId,mockImageFile)).thenReturn(Mono.just(mockSavedRecipe));
+
 
         mockMvc.perform(multipart("/recipe/"+String.valueOf(testRecipeId)+"/image").file(mockImageFile))
                 .andExpect(status().is3xxRedirection())

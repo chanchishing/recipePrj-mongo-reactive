@@ -9,7 +9,6 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.boot.CommandLineRunner;
 import org.springframework.context.annotation.Profile;
 import org.springframework.stereotype.Component;
-import org.springframework.transaction.annotation.Transactional;
 
 import java.math.BigDecimal;
 import java.util.Map;
@@ -48,7 +47,6 @@ public class BootStrapDataDefault implements CommandLineRunner {
         this.unitOfMeasureRepository = unitOfMeasureRepository;
     }
 
-    @Transactional
     private void initUOMs() {
 
         if (unitOfMeasureRepository.count() == 0) {
@@ -60,7 +58,6 @@ public class BootStrapDataDefault implements CommandLineRunner {
     }
 
 
-    @Transactional
     private void initCategory() {
 
         if (categoryRepository.count() == 0) {
@@ -71,7 +68,6 @@ public class BootStrapDataDefault implements CommandLineRunner {
         }
     }
 
-    @Transactional
     private Recipe initGuacamole() {
 
         Recipe guacamole = new Recipe();
@@ -117,7 +113,6 @@ public class BootStrapDataDefault implements CommandLineRunner {
         return guacamole;
     }
 
-    @Transactional
     private Recipe initSpicyGCTacos() {
         Recipe spicyGCTacos = new Recipe();
 

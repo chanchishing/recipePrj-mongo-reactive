@@ -1,38 +1,36 @@
 package guru.springframework.service;
 
 import guru.springframework.model.Recipe;
-import guru.springframework.repositories.RecipeRepository;
+import guru.springframework.repositories.reactive.RecipeReactiveRepository;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
-import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.multipart.MultipartFile;
-import org.thymeleaf.util.ArrayUtils;
+import reactor.core.publisher.Mono;
 
 import java.io.IOException;
-import java.io.InputStream;
 import java.util.NoSuchElementException;
-
-import static java.awt.SystemColor.info;
 
 @Slf4j
 @Service
 public class ImageServiceImpl implements ImageService {
 
-    RecipeRepository recipeRepository;
+    RecipeReactiveRepository recipeReactiveRepository;
 
-    public ImageServiceImpl(RecipeRepository recipeRepository) {
-        this.recipeRepository = recipeRepository;
+    public ImageServiceImpl(RecipeReactiveRepository recipeReactiveRepository) {
+        this.recipeReactiveRepository = recipeReactiveRepository;
     }
 
-    @Transactional
     @Override
-    public void saveRecipeImage(String recipeId, MultipartFile imageFile) {
+    public Mono<Recipe> saveRecipeImage(String recipeId, MultipartFile imageFile) {
 
         Recipe recipe;
 
         //Check recipe is an existing recipe
         try {
-            recipe = recipeRepository.findById(recipeId).orElseThrow();
+            recipe = recipeReactiveRepository.findById(recipeId).block();
+            if (recipe.equals(Mono.empty().block())) {
+                throw new NoSuchElementException();
+            }
         } catch (NoSuchElementException noElement) {
             log.error("Recipe Not Found recipeId="+String.valueOf(recipeId));
             throw noElement;
@@ -54,7 +52,7 @@ public class ImageServiceImpl implements ImageService {
             IOe.printStackTrace();
         }
 
-        recipeRepository.save(recipe);
+        return recipeReactiveRepository.save(recipe);
 
     }
 }

@@ -1,8 +1,7 @@
 package guru.springframework.service;
 
-import guru.springframework.controllers.ImageController;
 import guru.springframework.model.Recipe;
-import guru.springframework.repositories.RecipeRepository;
+import guru.springframework.repositories.reactive.RecipeReactiveRepository;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -11,12 +10,11 @@ import org.mockito.Mock;
 import org.mockito.MockitoAnnotations;
 import org.springframework.mock.web.MockMultipartFile;
 import org.springframework.web.multipart.MultipartFile;
+import reactor.core.publisher.Mono;
 
 import java.io.IOException;
-import java.util.Optional;
 
-import static org.junit.jupiter.api.Assertions.*;
-import static org.mockito.ArgumentMatchers.anyLong;
+import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.mockito.Mockito.*;
 
 class ImageServiceImplTest {
@@ -25,12 +23,12 @@ class ImageServiceImplTest {
     ImageService imageService;
 
     @Mock
-    RecipeRepository mockRecipeRepository;
+    RecipeReactiveRepository mockRecipeReactiveRepository;
 
     @BeforeEach
     void setUp() {
         closeable = MockitoAnnotations.openMocks(this);
-         imageService= new ImageServiceImpl(mockRecipeRepository);
+         imageService= new ImageServiceImpl(mockRecipeReactiveRepository);
     }
 
     @AfterEach
@@ -44,19 +42,21 @@ class ImageServiceImplTest {
         String testRecipeId="1";
         MultipartFile mockImageFile=new MockMultipartFile("mockImageFile","test.png","image/png","some bytes".getBytes());
 
-        Optional<Recipe> optionalRecipe=Optional.of(new Recipe());
-        optionalRecipe.get().setId(testRecipeId);
+        Recipe recipe=new Recipe();
+        recipe.setId(testRecipeId);
+        Mono<Recipe> monoRecipe=Mono.just(recipe);
 
-        when(mockRecipeRepository.findById(anyString())).thenReturn(optionalRecipe);
+
+        when(mockRecipeReactiveRepository.findById(anyString())).thenReturn(monoRecipe);
 
         ArgumentCaptor<Recipe> argumentCaptor = ArgumentCaptor.forClass(Recipe.class);
 
         imageService.saveRecipeImage(testRecipeId,mockImageFile);
 
 
-        verify(mockRecipeRepository, times(1)).save(argumentCaptor.capture());
-        Recipe savedRecipe = argumentCaptor.getValue();
-        assertEquals(mockImageFile.getBytes().length, savedRecipe.getImage().length);
+        verify(mockRecipeReactiveRepository, times(1)).save(argumentCaptor.capture());
+        Recipe recipeToSave = argumentCaptor.getValue();
+        assertEquals(mockImageFile.getBytes().length, recipeToSave.getImage().length);
     }
 
 }
