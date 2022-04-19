@@ -47,7 +47,11 @@ public class RecipeServiceImpl implements RecipeService {
 
     @Override
     public Mono<RecipeCommand> saveRecipe(RecipeCommand command) {
+
         Recipe recipe=commandToRecipe.convert(command);
+        if (recipe.getId().isEmpty()) {
+            recipe.setId(null);
+        }
 
         Mono<Recipe> monoRecipe=recipeReactiveRepository.save(recipe);
 
