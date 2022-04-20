@@ -3,14 +3,18 @@ package guru.springframework.controllers;
 import guru.springframework.commands.IngredientCommand;
 import guru.springframework.commands.RecipeCommand;
 import guru.springframework.commands.UnitOfMeasureCommand;
-import guru.springframework.model.Recipe;
 import guru.springframework.service.IngredientService;
 import guru.springframework.service.RecipeService;
 import guru.springframework.service.UnitOfMeasureService;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
-import org.springframework.web.bind.annotation.*;
+import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.ModelAttribute;
+import org.springframework.web.bind.annotation.PathVariable;
+import org.springframework.web.bind.annotation.PostMapping;
+import reactor.core.publisher.Flux;
+import reactor.core.publisher.Mono;
 
 import java.util.NoSuchElementException;
 
@@ -31,7 +35,7 @@ public class IngredientController {
 
     @GetMapping("/recipe/{id}/ingredients")
     public String listIngredients(@PathVariable String id, Model model){
-        RecipeCommand recipeCommand=recipeService.getRecipeCommandById(id).block();
+        Mono<RecipeCommand> recipeCommand=recipeService.getRecipeCommandById(id);
         model.addAttribute("recipe", recipeCommand);
         return "/recipe/ingredient/list";
     }
@@ -39,20 +43,26 @@ public class IngredientController {
 
     @GetMapping("/recipe/{recipeId}/ingredients/{ingredientId}/show")
     public String showIngredient(@PathVariable String recipeId, @PathVariable String ingredientId, Model model) {
-        IngredientCommand ingredientCommand=ingredientService.findByRecipeIDAndIngredientId(recipeId,ingredientId).block();
-        ingredientCommand.setRecipeId(recipeId);
-        model.addAttribute("ingredient", ingredientCommand);
+        Mono<IngredientCommand> ingredientCommandMono=ingredientService.findByRecipeIDAndIngredientId(recipeId,ingredientId).flatMap(ingredientCommand -> {
+            ingredientCommand.setRecipeId(recipeId);
+            return Mono.just(ingredientCommand);
+        });
+
+        //ingredientCommand.setRecipeId(recipeId);
+        model.addAttribute("ingredient", ingredientCommandMono);
 
         return "/recipe/ingredient/show";
     }
 
     @GetMapping("/recipe/{recipeId}/ingredients/{ingredientId}/update")
     public String loadIngredientToUpdate(@PathVariable String recipeId, @PathVariable String ingredientId, Model model) {
-        IngredientCommand ingredientCommand=ingredientService.findByRecipeIDAndIngredientId(recipeId,ingredientId).block();
-        ingredientCommand.setRecipeId(recipeId);
-        model.addAttribute("ingredient", ingredientCommand);
+        Mono<IngredientCommand> ingredientCommand=ingredientService.findByRecipeIDAndIngredientId(recipeId,ingredientId).flatMap((ingredient)->{
+            ingredient.setRecipeId(recipeId);
+            return Mono.just(ingredient);
+        });
 
-        model.addAttribute("uomList", unitOfMeasureService.getUomList().collectList().block());
+        model.addAttribute("ingredient", ingredientCommand);
+        model.addAttribute("uomList", unitOfMeasureService.getUomList().collectList());
 
         return "/recipe/ingredient/ingredientForm";
     }
@@ -69,21 +79,20 @@ public class IngredientController {
     @GetMapping("/recipe/{recipeId}/ingredients/new")
     public String loadIngredientFormToAdd(@PathVariable String recipeId, Model model) {
 
-        try {
-            Recipe recipe = recipeService.getRecipe(recipeId).blockOptional().orElseThrow();
-        } catch (NoSuchElementException noSuchElementException) {
-            log.info("Recipe Not Found");
-            throw noSuchElementException;
-        } catch (Exception e) {
-            throw e;
-        }
-
         IngredientCommand ingredientCommand=new IngredientCommand();
         ingredientCommand.setRecipeId(recipeId);
         ingredientCommand.setUom(new UnitOfMeasureCommand());
 
+        Flux<UnitOfMeasureCommand> unitOfMeasureCommandFlux=recipeService.getRecipe(recipeId).flatMapMany((recipe)->{
+            if (recipe.equals(Mono.empty())) {
+                log.info("Recipe Not Found Id:"+ recipeId);
+                throw new NoSuchElementException("Recipe of Id:" + recipeId + " not found");
+            }
+            return unitOfMeasureService.getUomList();
+        });
+
         model.addAttribute("ingredient", ingredientCommand);
-        model.addAttribute("uomList", unitOfMeasureService.getUomList().collectList().block());
+        model.addAttribute("uomList", unitOfMeasureCommandFlux);
 
         return "/recipe/ingredient/ingredientForm";
     }

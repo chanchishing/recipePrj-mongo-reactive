@@ -7,8 +7,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.GetMapping;
-
-import java.util.List;
+import reactor.core.publisher.Flux;
 
 @Slf4j
 @Controller
@@ -23,10 +22,8 @@ public class IndexController {
     @GetMapping({"","/","/index"})
     public String getIndexPage(Model model){
 
-        List<Recipe> recipeList= recipeService.getRecipeList().collectList().block();
+        Flux<Recipe> recipeList= recipeService.getRecipeList();
 
-        //System.out.println("Number of Recipe:" + recipeList.size());
-        log.debug("Number of Recipe:" + recipeList.size());
         model.addAttribute("recipes",recipeList);
 
         return "index";
