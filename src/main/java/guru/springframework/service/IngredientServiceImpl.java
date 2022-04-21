@@ -133,11 +133,19 @@ public class IngredientServiceImpl implements IngredientService{
 
         return recipeReactiveRepository.findById(ingredientCommand.getRecipeId())
                 .flatMap(recipe ->{
-
-
-
-                    return Mono.just(new IngredientCommand());
+                    Ingredient ingredient=recipe.getIngredients().stream().filter(element->element.getId().equals(ingredientCommand.getId())).findFirst().get();
+                    ingredient.setDescription(ingredientCommand.getDescription());
+                    ingredient.setAmount(ingredientCommand.getAmount());
+                    //ingredient.setUom(uomReactiveRepository.findById(ingredientCommand.getUom().getId()));
+                    return recipeReactiveRepository.save(recipe);
                     })
+                .flatMap(savedRecipe ->{
+                    Ingredient savedIngredient=savedRecipe.getIngredients().stream().filter(element->element.getId().equals(ingredientCommand.getId())).findFirst().orElseThrow();
+                    IngredientCommand savedIngredientCommand=ingredientToCommand.convert(savedIngredient);
+                    savedIngredientCommand.setRecipeId(ingredientCommand.getRecipeId());
+                    return Mono.just(savedIngredientCommand);
+                    //return Mono.just(new IngredientCommand());
+                })
                 .doOnError(thr -> log.error("Error saving Ingredient"));
 
     }
