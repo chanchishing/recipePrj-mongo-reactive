@@ -14,7 +14,6 @@ import reactor.core.publisher.Mono;
 
 import java.util.NoSuchElementException;
 import java.util.Set;
-import java.util.UUID;
 
 @Slf4j
 @Service
@@ -82,54 +81,64 @@ public class IngredientServiceImpl implements IngredientService{
 
     @Override
     public Mono<IngredientCommand> saveIngredient(IngredientCommand ingredientCommand) {
-        Recipe recipe;
+        //Recipe recipe;
+        //
+        ////Check recipe of Ingredient is an existing recipe
+        //try {
+        //    recipe = recipeReactiveRepository.findById(ingredientCommand.getRecipeId()).blockOptional().orElseThrow();
+        //} catch (NoSuchElementException noElement) {
+        //    log.error("Recipe Not Found");
+        //    throw noElement;
+        //} catch (Exception e){
+        //    throw e;
+        //}
+        //
+        //recipe.getIngredients().stream().filter(element->element.getId().equals(ingredientCommand.getId())).findFirst().ifPresentOrElse(
+        //        //ingredient is an existing ingredient of recipe
+        //        (ingredient) -> {
+        //            ingredient.setDescription(ingredientCommand.getDescription());
+        //            ingredient.setAmount(ingredientCommand.getAmount());
+        //            try { //make sure uom already exists in DB
+        //                ingredient.setUom(uomReactiveRepository.findById(ingredientCommand.getUom().getId()).blockOptional().orElseThrow());
+        //            } catch (NoSuchElementException noElement){
+        //                log.error("Unit of Measure not found");
+        //                throw noElement;
+        //            } catch (Exception e){
+        //                throw e;
+        //            }},
+        //        //ingredient is not an existing ingredient, also need to check uom already exist
+        //        () ->{
+        //            try { //make sure uom already exists in DB
+        //                uomReactiveRepository.findById(ingredientCommand.getUom().getId()).blockOptional().orElseThrow();
+        //            } catch (NoSuchElementException noElement){
+        //                log.error("Unit of Measure not found");
+        //                throw noElement;
+        //            } catch (Exception e){
+        //                throw e;
+        //            }
+        //            ingredientCommand.setId(UUID.randomUUID().toString());
+        //            recipe.addIngredient(commandToIngredient.convert(ingredientCommand));
+        //        }
+        //);
+        //
+        //Mono<Recipe> savedRecipeMono=recipeReactiveRepository.save(recipe);
+        //
+        //return savedRecipeMono.map(savedRecipe-> {
+        //    Set<Ingredient> ingredientSet=savedRecipe.getIngredients();
+        //    Ingredient ingredient=ingredientSet.stream().filter(element->element.getId().equals(ingredientCommand.getId())).findFirst().orElseThrow();
+        //    IngredientCommand savedIngredientCommand =ingredientToCommand.convert(ingredient);
+        //    savedIngredientCommand.setRecipeId(ingredientCommand.getRecipeId());
+        //    return savedIngredientCommand;
+        //});
 
-        //Check recipe of Ingredient is an existing recipe
-        try {
-            recipe = recipeReactiveRepository.findById(ingredientCommand.getRecipeId()).blockOptional().orElseThrow();
-        } catch (NoSuchElementException noElement) {
-            log.error("Recipe Not Found");
-            throw noElement;
-        } catch (Exception e){
-            throw e;
-        }
+        return recipeReactiveRepository.findById(ingredientCommand.getRecipeId())
+                .flatMap(recipe ->{
 
-        recipe.getIngredients().stream().filter(element->element.getId().equals(ingredientCommand.getId())).findFirst().ifPresentOrElse(
-                //ingredient is an existing ingredient of recipe
-                (ingredient) -> {
-                    ingredient.setDescription(ingredientCommand.getDescription());
-                    ingredient.setAmount(ingredientCommand.getAmount());
-                    try { //make sure uom already exists in DB
-                        ingredient.setUom(uomReactiveRepository.findById(ingredientCommand.getUom().getId()).blockOptional().orElseThrow());
-                    } catch (NoSuchElementException noElement){
-                        log.error("Unit of Measure not found");
-                        throw noElement;
-                    } catch (Exception e){
-                        throw e;
-                    }},
-                //ingredient is not an existing ingredient, also need to check uom already exist
-                () ->{
-                    try { //make sure uom already exists in DB
-                        uomReactiveRepository.findById(ingredientCommand.getUom().getId()).blockOptional().orElseThrow();
-                    } catch (NoSuchElementException noElement){
-                        log.error("Unit of Measure not found");
-                        throw noElement;
-                    } catch (Exception e){
-                        throw e;
-                    }
-                    ingredientCommand.setId(UUID.randomUUID().toString());
-                    recipe.addIngredient(commandToIngredient.convert(ingredientCommand));
-                }
-        );
 
-        Mono<Recipe> savedRecipeMono=recipeReactiveRepository.save(recipe);
 
-        return savedRecipeMono.map(savedRecipe-> {
-            Set<Ingredient> ingredientSet=savedRecipe.getIngredients();
-            Ingredient ingredient=ingredientSet.stream().filter(element->element.getId().equals(ingredientCommand.getId())).findFirst().orElseThrow();
-            IngredientCommand savedIngredientCommand =ingredientToCommand.convert(ingredient);
-            savedIngredientCommand.setRecipeId(ingredientCommand.getRecipeId());
-            return savedIngredientCommand;
-        });
+                    return Mono.just(new IngredientCommand());
+                    })
+                .doOnError(thr -> log.error("Error saving Ingredient"));
+
     }
 }
